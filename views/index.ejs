@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список задач</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <main class="container">
+        <h1>Список задач</h1>
+        <p class="subtitle">Серверное приложение на Node.js, Express и EJS</p>
+
+        <section class="card">
+            <h2>Добавить задачу</h2>
+
+            <form action="/tasks" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="title">Название задачи *</label>
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        required
+                        maxlength="100"
+                        placeholder="Например: Выполнить лабораторную работу"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Описание</label>
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="4"
+                        placeholder="Кратко опишите задачу"
+                    ></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="status">Статус</label>
+                        <select id="status" name="status">
+                            <option value="new">Новая</option>
+                            <option value="in-progress">В работе</option>
+                            <option value="done">Выполнена</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dueDate">Ожидаемая дата завершения</label>
+                        <input type="date" id="dueDate" name="dueDate">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="attachment">Прикрепить файл</label>
+                    <input type="file" id="attachment" name="attachment">
+                    <small>Максимальный размер файла: 5 МБ.</small>
+                </div>
+
+                <button type="submit" class="button">Создать задачу</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Фильтрация</h2>
+
+            <form action="/" method="GET" class="filter-form">
+                <label for="filter-status">Показать задачи:</label>
+
+                <select id="filter-status" name="status">
+                    <option value="all" <%= selectedStatus === "all" ? "selected" : "" %>>
+                        Все
+                    </option>
+                    <option value="new" <%= selectedStatus === "new" ? "selected" : "" %>>
+                        Новые
+                    </option>
+                    <option value="in-progress" <%= selectedStatus === "in-progress" ? "selected" : "" %>>
+                        В работе
+                    </option>
+                    <option value="done" <%= selectedStatus === "done" ? "selected" : "" %>>
+                        Выполненные
+                    </option>
+                </select>
+
+                <button type="submit" class="button secondary">Применить</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Задачи: <%= tasks.length %></h2>
+
+            <% if (tasks.length === 0) { %>
+                <div class="empty">
+                    По выбранному фильтру задач не найдено.
+                </div>
+            <% } %>
+
+            <div class="task-list">
+                <% tasks.forEach(task => { %>
+                    <article class="task-card">
+                        <div class="task-header">
+                            <h3><%= task.title %></h3>
+
+                            <span class="status status-<%= task.status %>">
+                                <%= statuses[task.status] %>
+                            </span>
+                        </div>
+
+                        <% if (task.description) { %>
+                            <p class="description"><%= task.description %></p>
+                        <% } %>
+
+                        <p class="date">
+                            <strong>Ожидаемая дата завершения:</strong>
+                            <%= task.dueDate || "не указана" %>
+                        </p>
+
+                        <% if (task.file) { %>
+                            <p class="file">
+                                <strong>Прикреплённый файл:</strong>
+                                <a
+                                    href="/uploads/<%= task.file.storedName %>"
+                                    target="_blank"
+                                    download
+                                >
+                                    <%= task.file.originalName %>
+                                </a>
+                            </p>
+                        <% } else { %>
+                            <p class="file">
+                                <strong>Прикреплённый файл:</strong>
+                                отсутствует
+                            </p>
+                        <% } %>
+
+                        <div class="task-actions">
+                            <form action="/tasks/<%= task.id %>/status" method="POST">
+                                <label>
+                                    Изменить статус:
+                                    <select name="status">
+                                        <option value="new" <%= task.status === "new" ? "selected" : "" %>>
+                                            Новая
+                                        </option>
+                                        <option value="in-progress" <%= task.status === "in-progress" ? "selected" : "" %>>
+                                            В работе
+                                        </option>
+                                        <option value="done" <%= task.status === "done" ? "selected" : "" %>>
+                                            Выполнена
+                                        </option>
+                                    </select>
+                                </label>
+
+                                <button type="submit" class="button secondary">
+                                    Сохранить
+                                </button>
+                            </form>
+
+                            <form action="/tasks/<%= task.id %>/delete" method="POST">
+                                <button
+                                    type="submit"
+                                    class="button danger"
+                                    onclick="return confirm('Удалить задачу?')"
+                                >
+                                    Удалить
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                <% }) %>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
